@@ -31,6 +31,7 @@ jobs:
         run: |
           unzip ADDO_Manager_v0_5_DOWNLOAD.zip
           cd addomanager_flutter
+          flutter create --platforms=android .
           flutter pub get
           flutter build apk --release
 
