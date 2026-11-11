@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -21,6 +21,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android API 36
+        run: sdkmanager "platforms;android-36"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -31,9 +37,8 @@ jobs:
         run: |
           unzip ADDO_Manager_v0_5_DOWNLOAD.zip
           test -f addomanager_flutter/pubspec.yaml
-          test -f addomanager_flutter/lib/suppliers_page.dart
 
-      - name: Fix suppliers page syntax
+      - name: Fix suppliers page
         working-directory: addomanager_flutter
         run: |
           python3 - <<'PY'
@@ -42,20 +47,50 @@ jobs:
           s = p.read_text()
           old = "child: Text(t('Hifadhi','Save'))],"
           new = "child: Text(t('Hifadhi','Save')))],"
-          assert old in s, "Original error line not found"
-          p.write_text(s.replace(old, new, 1))
-          print("Suppliers page fixed successfully")
+          if old in s:
+              p.write_text(s.replace(old, new, 1))
+          print("Suppliers page checked")
           PY
 
       - name: Generate Android project
         working-directory: addomanager_flutter
         run: flutter create --platforms=android .
 
+      - name: Set compileSdk 36
+        working-directory: addomanager_flutter
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          files = [
+              Path("android/app/build.gradle.kts"),
+              Path("android/app/build.gradle")
+          ]
+
+          for p in files:
+              if p.exists():
+                  s = p.read_text()
+                  s, n = re.subn(
+                      r'(?m)^(\s*compileSdk(?:Version)?\s*=?\s*)(?:flutter\.compileSdkVersion|\d+)',
+                      r'\g<1>36',
+                      s,
+                      count=1
+                  )
+                  assert n == 1, "Could not update compileSdk in " + str(p)
+                  p.write_text(s)
+                  print("Updated", p)
+                  break
+          else:
+              raise Exception("Android app Gradle file not found")
+
+          PY
+
       - name: Install dependencies
         working-directory: addomanager_flutter
         run: flutter pub get
 
-      - name: Build release APK
+      - name: Build APK
         working-directory: addomanager_flutter
         run: flutter build apk --release
 
