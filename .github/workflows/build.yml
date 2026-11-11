@@ -1,4 +1,5 @@
 
+
 name: Build ADDO Manager APK
 
 on:
@@ -32,11 +33,16 @@ jobs:
           unzip ADDO_Manager_v0_5_DOWNLOAD.zip
           test -f addomanager_flutter/pubspec.yaml
 
-      - name: Generate Android project
+      - name: Fix suppliers page syntax
         working-directory: addomanager_flutter
         run: |
-          flutter create --platforms=android .
-      
+          sed -i "s/child: Text(t('Hifadhi','Save'))],/child: Text(t('Hifadhi','Save')))],/" lib/suppliers_page.dart
+          grep -n "Hifadhi" lib/suppliers_page.dart
+
+      - name: Generate Android project
+        working-directory: addomanager_flutter
+        run: flutter create --platforms=android .
+
       - name: Install dependencies
         working-directory: addomanager_flutter
         run: flutter pub get
