@@ -31,12 +31,21 @@ jobs:
         run: |
           unzip ADDO_Manager_v0_5_DOWNLOAD.zip
           test -f addomanager_flutter/pubspec.yaml
+          test -f addomanager_flutter/lib/suppliers_page.dart
 
       - name: Fix suppliers page syntax
         working-directory: addomanager_flutter
         run: |
-          sed -i "s/child: Text(t('Hifadhi','Save'))],/child: Text(t('Hifadhi','Save')))],/" lib/suppliers_page.dart
-          grep -n "Hifadhi" lib/suppliers_page.dart
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("lib/suppliers_page.dart")
+          s = p.read_text()
+          old = "child: Text(t('Hifadhi','Save'))],"
+          new = "child: Text(t('Hifadhi','Save')))],"
+          assert old in s, "Original error line not found"
+          p.write_text(s.replace(old, new, 1))
+          print("Suppliers page fixed successfully")
+          PY
 
       - name: Generate Android project
         working-directory: addomanager_flutter
