@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout source code
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -27,16 +27,27 @@ jobs:
         with:
           channel: stable
 
-      - name: Extract app
+      - name: Extract ADDO Manager
         run: |
           unzip ADDO_Manager_v0_5_DOWNLOAD.zip
-          cd addomanager_flutter
-          flutter create --platforms=android .
-          flutter pub get
-          flutter build apk --release
+          test -f addomanager_flutter/pubspec.yaml
 
-      - name: Save APK
+      - name: Generate Android project
+        working-directory: addomanager_flutter
+        run: |
+          flutter create --platforms=android .
+      
+      - name: Install dependencies
+        working-directory: addomanager_flutter
+        run: flutter pub get
+
+      - name: Build release APK
+        working-directory: addomanager_flutter
+        run: flutter build apk --release
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ADDO-Manager-APK
           path: addomanager_flutter/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
