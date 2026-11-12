@@ -45,9 +45,11 @@ jobs:
           new = "child: Text(t('Hifadhi','Save')))],"
 
           if old in s:
-              p.write_text(s.replace(old, new, 1))
-
-          print("Suppliers page checked")
+              s = s.replace(old, new, 1)
+              p.write_text(s)
+              print("Suppliers page syntax fixed")
+          else:
+              print("Target text not found; checking current file")
           PY
 
       - name: Generate Android project
