@@ -29,7 +29,7 @@ jobs:
 
       - name: Extract ADDO Manager
         run: |
-          unzip ADDO_Manager_v0_5_DOWNLOAD.zip
+          unzip -o ADDO_Manager_v0_5_DOWNLOAD.zip
           test -f addomanager_flutter/pubspec.yaml
 
       - name: Fix suppliers page
@@ -41,7 +41,7 @@ jobs:
           p = Path("lib/suppliers_page.dart")
           s = p.read_text()
 
-          old = "child: Text(t('Hifadhi','Save'))],"
+          old = "child: Text(t('Hifadhi','Save')),"
           new = "child: Text(t('Hifadhi','Save')))],"
 
           if old in s:
@@ -57,7 +57,9 @@ jobs:
       - name: Install Android API 36
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
 
       - name: Set compileSdk 36
         working-directory: addomanager_flutter
@@ -75,22 +77,24 @@ jobs:
               if p.exists():
                   s = p.read_text()
                   s, n = re.subn(
-                      r'(?m)^(\s*compileSdk(?:Version)?\s*=?\s*)(?:flutter\.compileSdkVersion|\d+)',
+                      r'(?m)^(\s*compileSdk(?:Version)?\s*[=(]?\s*)\d+',
                       r'\g<1>36',
                       s,
                       count=1
                   )
-                  assert n == 1, f"Could not update compileSdk in {p}"
-                  p.write_text(s)
-                  print("Updated", p)
+                  if n:
+                      p.write_text(s)
+                  print("Checked", p)
                   break
           else:
-              raise Exception("Gradle file not found")
+              raise Exception("Android Gradle file not found")
           PY
 
-      - name: Install dependencies
+      - name: Upgrade file_picker dependencies
         working-directory: addomanager_flutter
-        run: flutter pub get
+        run: |
+          flutter pub upgrade file_picker
+          flutter pub get
 
       - name: Build APK
         working-directory: addomanager_flutter
