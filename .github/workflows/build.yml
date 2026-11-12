@@ -42,7 +42,7 @@ jobs:
           s = p.read_text()
 
           old = "child: Text(t('Hifadhi','Save')),"
-          new = "child: Text(t('Hifadhi','Save')))],"
+          new = "child: Text(t('Hifadhi','Save'))))],"
 
           if old in s:
               s = s.replace(old, new, 1)
@@ -108,3 +108,4 @@ jobs:
           name: ADDO-Manager-APK
           path: addomanager_flutter/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
+          
